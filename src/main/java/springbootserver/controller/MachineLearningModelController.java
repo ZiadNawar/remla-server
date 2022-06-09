@@ -14,12 +14,15 @@ import springbootserver.data.MachineLearningModel;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 @Controller
-@RequestMapping(path = "/model")
+@RequestMapping(path = "/")
 public class MachineLearningModelController {
     private String modelHost;
     private RestTemplateBuilder rest;
+    private int http_requests_total = 0;
+    private ArrayList<Integer> avg = new ArrayList<>();
 
     public MachineLearningModelController(RestTemplateBuilder rest, Environment env) {
         this.rest = rest;
@@ -32,10 +35,37 @@ public class MachineLearningModelController {
         return "model/index";
     }
 
+    @GetMapping(value="/metrics",produces = "text/plain")
+    @ResponseBody
+    public String metrics(){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("# HELP http_requests_total The total number of HTTP requests.\n");
+        sb.append("# TYPE http_requests_total counter\n");
+        sb.append("http_requests_total ").append(http_requests_total).append("\n\n");
+
+        double sum = 0;
+        for(int d : avg) sum += d;
+        double res = 0;
+        if (avg.size()!=0){
+            res = sum/avg.size();
+        } else {
+            res = 0;
+        }
+        sb.append("# HELP average_size_input The average size of text input.\n");
+        sb.append("# TYPE average_size_input counter\n");
+        sb.append("average_size_input ").append(res).append("\n\n");
+
+        return sb.toString();
+    }
+
     @PostMapping
     @ResponseBody
     public MachineLearningModel predict(@RequestBody MachineLearningModel model) {
+        addRequest();
+        addWord(model.input_data);
         model.result = getPredication(model);
+
         return model;
     }
 
@@ -69,5 +99,11 @@ public class MachineLearningModelController {
         }
     }
 
+    private void addRequest(){
+        this.http_requests_total += 1;
+    }
 
+    private void addWord(String text){
+        this.avg.add(text.length());
+    }
 }
