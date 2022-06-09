@@ -4,10 +4,6 @@ $(document).ready(function() {
         return $("textarea").val().trim()
     }
 
-    function getGuess() {
-        return $("input[name='guess']:checked").val().trim()
-    }
-
     function cleanResult() {
         $("#result").removeClass("correct")
         $("#result").removeClass("incorrect")
@@ -20,26 +16,28 @@ $(document).ready(function() {
         e.preventDefault()
 
         var input_data = getInput()
-        var guess = getGuess()
 
         $.ajax({
             type: "POST",
             url: "./",
-            data: JSON.stringify({"input_data": input_data, "guess": guess}),
+            data: JSON.stringify({"input_data": input_data}),
             contentType: "application/json",
             dataType: "json",
             success: handleResult,
             error: handleError
         })
+
     })
 
     function handleResult(res) {
-        var wasRight = res.result == getGuess()
+        // var wasRight = res.result == getGuess()
 
         cleanResult()
-        $("#result").addClass(wasRight ? "correct" : "incorrect")
-        $("#result").html("The classifier " + (wasRight ? "agrees" : "disagrees"))
-        $("#result").show()
+        // $("#result").addClass(wasRight ? "correct" : "incorrect")
+        console.log(res)
+        // $("#result").innerText = res
+        $("#result").show();
+        document.getElementById("result").innerText = res.result;
     }
 
     function handleError(e) {

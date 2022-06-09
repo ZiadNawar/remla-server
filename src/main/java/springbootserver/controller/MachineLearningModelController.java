@@ -43,7 +43,27 @@ public class MachineLearningModelController {
         try {
             URI url = new URI(modelHost + "/predict");
             ResponseEntity<MachineLearningModel> c = rest.build().postForEntity(url, model, MachineLearningModel.class);
-            return c.getBody().result.trim();
+            StringBuilder str = new StringBuilder();
+
+
+            if ( c.getBody().result_tfidf.length == 0 ){
+                str.append("TF IDF model couldn't classify your input");
+            } else {
+                str.append("TF_IDF model result\n");
+                str.append(String.join(" ,", c.getBody().result_tfidf));
+
+            }
+            str.append("\n");
+            if ( c.getBody().result_mybag.length == 0 ){
+                str.append("My Bag model couldn't classify your input");
+            } else {
+                str.append("My Bag model result \n");
+                str.append(String.join(" ,", c.getBody().result_mybag));
+
+            }
+
+            System.out.println(str.toString());
+            return str.toString().trim();
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
